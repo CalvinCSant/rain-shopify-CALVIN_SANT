@@ -103,7 +103,11 @@
                       assign ratio = 1
                     endif
 
-                    assign best_use_value = product.metafields.custom.snowboard_best_use.value
+                    assign best_use_value = blank
+                    assign best_use_metafield = product.metafields.custom.snowboard_best_use
+                    if best_use_metafield != blank
+                      assign best_use_value = best_use_metafield.value | default: best_use_metafield
+                    endif
                   -%}
 
                   <li class="grid__item" {{ block.shopify_attributes }}>
