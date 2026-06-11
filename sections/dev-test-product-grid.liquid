@@ -1,0 +1,316 @@
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'component-image-with-text.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  .section-{{ section.id }} .dev-test-product-grid__products {
+    margin-top: 3rem;
+    row-gap: 2rem;
+  }
+
+  .section-{{ section.id }} .dev-test-product-grid__card-link {
+    color: inherit;
+    display: block;
+    height: 100%;
+  }
+
+  .section-{{ section.id }} .dev-test-product-grid__card-link:focus-visible {
+    outline: 0.2rem solid rgba(var(--color-foreground), 0.5);
+    outline-offset: 0.3rem;
+  }
+
+  .section-{{ section.id }} .dev-test-product-grid__best-use {
+    margin-top: 0.8rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+
+    .section-{{ section.id }} .dev-test-product-grid__products {
+      margin-top: 4rem;
+    }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign fetch_priority = 'auto'
+  if section.index == 1
+    assign fetch_priority = 'high'
+  endif
+-%}
+
+<div class="section-{{ section.id }} section-{{ section.id }}-padding gradient color-{{ section.settings.section_color_scheme }}">
+  <div class="page-width">
+    <div class="image-with-text image-with-text--no-overlap isolate">
+      <div class="image-with-text__grid grid grid--gapless grid--1-col grid--2-col-tablet">
+        <div class="image-with-text__media-item image-with-text__media-item--medium image-with-text__media-item--top grid__item">
+          <div
+            class="image-with-text__media image-with-text__media--adapt global-media-settings gradient color-{{ section.settings.media_color_scheme }}{% if section.settings.image != blank %} media{% else %} image-with-text__media--placeholder placeholder{% endif %}"
+            {% if section.settings.image != blank %}
+              style="padding-bottom: {{ 1 | divided_by: section.settings.image.aspect_ratio | times: 100 }}%;"
+            {% endif %}
+          >
+            {%- if section.settings.image != blank -%}
+              {%- capture sizes -%}
+                (min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 100 | divided_by: 2 }}px,
+                (min-width: 750px) calc((100vw - 130px) / 2),
+                calc(100vw - 50px)
+              {%- endcapture -%}
+              {{
+                section.settings.image
+                | image_url: width: 1500
+                | image_tag: sizes: sizes, widths: '165, 360, 535, 750, 1070, 1500', fetchpriority: fetch_priority
+              }}
+            {%- else -%}
+              {{ 'detailed-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+            {%- endif -%}
+          </div>
+        </div>
+
+        <div class="image-with-text__text-item grid__item">
+          <div class="image-with-text__content image-with-text__content--top image-with-text__content--desktop-left image-with-text__content--mobile-left image-with-text__content--adapt content-container gradient color-{{ section.settings.color_scheme }}">
+            {%- if section.settings.heading != blank -%}
+              <h2 class="image-with-text__heading inline-richtext {{ section.settings.heading_size }}">
+                {{ section.settings.heading }}
+              </h2>
+            {%- endif -%}
+
+            {%- if section.settings.paragraph != blank -%}
+              <div class="image-with-text__text rte">
+                {{ section.settings.paragraph }}
+              </div>
+            {%- endif -%}
+
+            <ul class="dev-test-product-grid__products grid product-grid contains-card contains-card--product grid--2-col-tablet-down grid--2-col-desktop" role="list">
+              {%- for block in section.blocks -%}
+                {%- assign product = block.settings.product -%}
+
+                {%- if product != blank -%}
+                  {%- liquid
+                    assign ratio = 1
+                    if product.featured_media
+                      assign ratio = product.featured_media.aspect_ratio
+                    endif
+                    if ratio == 0 or ratio == null
+                      assign ratio = 1
+                    endif
+
+                    assign best_use_value = product.metafields.custom.snowboard_best_use.value
+                  -%}
+
+                  <li class="grid__item" {{ block.shopify_attributes }}>
+                    <div class="card-wrapper product-card-wrapper underline-links-hover">
+                      <a
+                        href="{{ product.url }}"
+                        class="dev-test-product-grid__card-link full-unstyled-link"
+                        aria-label="{{ product.title | escape }}"
+                      >
+                        <div
+                          class="card card--{{ settings.card_style }} card--media{% if settings.card_style == 'card' %} color-{{ settings.card_color_scheme }} gradient{% endif %}"
+                          style="--ratio-percent: {{ 1 | divided_by: ratio | times: 100 }}%;"
+                        >
+                          <div
+                            class="card__inner{% if settings.card_style == 'standard' %} color-{{ settings.card_color_scheme }} gradient{% endif %} ratio"
+                            style="--ratio-percent: {{ 1 | divided_by: ratio | times: 100 }}%;"
+                          >
+                            <div class="card__media">
+                              <div class="media media--transparent media--hover-effect">
+                                {%- if product.featured_media -%}
+                                  <img
+                                    srcset="
+                                      {%- if product.featured_media.width >= 165 -%}{{ product.featured_media | image_url: width: 165 }} 165w,{%- endif -%}
+                                      {%- if product.featured_media.width >= 360 -%}{{ product.featured_media | image_url: width: 360 }} 360w,{%- endif -%}
+                                      {%- if product.featured_media.width >= 533 -%}{{ product.featured_media | image_url: width: 533 }} 533w,{%- endif -%}
+                                      {%- if product.featured_media.width >= 720 -%}{{ product.featured_media | image_url: width: 720 }} 720w,{%- endif -%}
+                                      {%- if product.featured_media.width >= 940 -%}{{ product.featured_media | image_url: width: 940 }} 940w,{%- endif -%}
+                                      {%- if product.featured_media.width >= 1066 -%}{{ product.featured_media | image_url: width: 1066 }} 1066w,{%- endif -%}
+                                      {{ product.featured_media | image_url }} {{ product.featured_media.width }}w
+                                    "
+                                    src="{{ product.featured_media | image_url: width: 533 }}"
+                                    sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 180 | divided_by: 4 }}px, (min-width: 990px) calc((100vw - 180px) / 4), (min-width: 750px) calc((100vw - 140px) / 4), calc((100vw - 55px) / 2)"
+                                    alt="{{ product.featured_media.alt | escape }}"
+                                    class="motion-reduce"
+                                    loading="lazy"
+                                    width="{{ product.featured_media.width }}"
+                                    height="{{ product.featured_media.height }}"
+                                  >
+                                {%- else -%}
+                                  {{ 'product-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                                {%- endif -%}
+
+                                {%- if product.media[1] != blank -%}
+                                  <img
+                                    srcset="
+                                      {%- if product.media[1].width >= 165 -%}{{ product.media[1] | image_url: width: 165 }} 165w,{%- endif -%}
+                                      {%- if product.media[1].width >= 360 -%}{{ product.media[1] | image_url: width: 360 }} 360w,{%- endif -%}
+                                      {%- if product.media[1].width >= 533 -%}{{ product.media[1] | image_url: width: 533 }} 533w,{%- endif -%}
+                                      {%- if product.media[1].width >= 720 -%}{{ product.media[1] | image_url: width: 720 }} 720w,{%- endif -%}
+                                      {%- if product.media[1].width >= 940 -%}{{ product.media[1] | image_url: width: 940 }} 940w,{%- endif -%}
+                                      {%- if product.media[1].width >= 1066 -%}{{ product.media[1] | image_url: width: 1066 }} 1066w,{%- endif -%}
+                                      {{ product.media[1] | image_url }} {{ product.media[1].width }}w
+                                    "
+                                    src="{{ product.media[1] | image_url: width: 533 }}"
+                                    sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 180 | divided_by: 4 }}px, (min-width: 990px) calc((100vw - 180px) / 4), (min-width: 750px) calc((100vw - 140px) / 4), calc((100vw - 55px) / 2)"
+                                    alt=""
+                                    class="motion-reduce"
+                                    loading="lazy"
+                                    width="{{ product.media[1].width }}"
+                                    height="{{ product.media[1].height }}"
+                                  >
+                                {%- endif -%}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="card__content">
+                            <div class="card__information">
+                              <h3 class="card__heading h5">
+                                {{ product.title | escape }}
+                              </h3>
+                              <div class="card-information">
+                                {% render 'price', product: product, price_class: '', show_compare_at_price: true %}
+
+                                {%- if best_use_value != blank -%}
+                                  <p class="dev-test-product-grid__best-use caption-large light">
+                                    {{ best_use_value }}
+                                  </p>
+                                {%- endif -%}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Dev Test Product Grid",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Section heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        }
+      ],
+      "default": "h1",
+      "label": "Heading size"
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>Section paragraph copy.</p>"
+    },
+    {
+      "type": "color_scheme",
+      "id": "section_color_scheme",
+      "label": "Section color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "media_color_scheme",
+      "label": "Media color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Content color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_card",
+      "name": "Product card",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Dev Test Product Grid",
+      "blocks": [
+        {
+          "type": "product_card"
+        },
+        {
+          "type": "product_card"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
